@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+:root {
+  --brand-blue: #2b57a7;
+  --surface: #ffffff;
+  --ink: #0f172a;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  color: var(--ink);
+  background: linear-gradient(180deg, #f9fbff 0%, #f7f8fb 100%);
+  font-family: var(--font-heebo), system-ui, -apple-system, sans-serif;
+}
