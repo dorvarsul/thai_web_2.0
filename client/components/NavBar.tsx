@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase-server';
 import CartBadge from './CartBadge';
 import LanguageSwitcher from './LanguageSwitcher';
 import Image from 'next/image';
+import ContactScrollButton from './ContactScrollButton';
 
 type NavbarProps = {
   locale: string;
@@ -36,6 +37,7 @@ export default async function Navbar({ locale }: NavbarProps) {
             </Link>
             <div className="hidden md:flex gap-6 text-gray-600 font-medium">
               <Link href={localeHref('/about')} className="hover:text-red-600 transition">{t('about')}</Link>
+              <ContactScrollButton label={t('contact')} />
             </div>
           </div>
 

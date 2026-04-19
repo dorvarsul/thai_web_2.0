@@ -11,7 +11,7 @@ export default async function Footer({ locale }: { locale: string }) {
   const wazeUrl = `https://waze.com/ul?q=${encodeURIComponent(address)}&navigate=yes`;
 
   return (
-    <footer className="bg-slate-50 border-t border-gray-200 pt-12 pb-8">
+    <footer id="contact-footer" className="bg-slate-50 border-t border-gray-200 pt-12 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           

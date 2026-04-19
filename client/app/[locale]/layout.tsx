@@ -16,7 +16,7 @@ const heebo = Heebo({
 });
 
 export const metadata: Metadata = {
-  title: "Thai Market | תאי מרקט",
+  title: "Eden Thai Shop | עדן תאי שופ",
   description: "Thai e-commerce storefront",
 };
 
