@@ -50,5 +50,12 @@
 		"continueShopping": "חזור לקניות",
 		"subtotal": "סה\"כ לתשלום",
 		"checkout": "המשך לתשלום"
+	},
+	"Footer": {
+		"brandName": "עדן תאי שופ",
+		"description": "הסופרמרקט האסייתי הגדול והטרי ביותר בקריית גת",
+		"contactUs": "צרו קשר",
+		"findUs": "בואו אלינו",
+		"openInWaze": "ניווט בוייז"
 	}
 }

@@ -40,10 +40,13 @@ export default async function CategoryNav() {
 function CategoryItem({ name, Icon }: { name: string; Icon: LucideIcon }) {
   return (
     <div className="group flex min-w-[88px] cursor-pointer flex-col items-center gap-3 transition-transform hover:-translate-y-1">
-      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-50 shadow-inner transition-colors group-hover:bg-blue-50">
-        <Icon size={26} className="text-slate-600 transition-colors group-hover:text-blue-600" />
+      {/* Circle changed to solid red, Icon to white */}
+      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-600 shadow-md transition-colors group-hover:bg-red-700">
+        <Icon size={26} className="text-white" />
       </div>
-      <span className="whitespace-nowrap text-sm font-bold text-slate-700 transition-colors group-hover:text-blue-600">
+      
+      {/* Text hover changed from blue-600 to red-600 */}
+      <span className="whitespace-nowrap text-sm font-bold text-slate-700 transition-colors group-hover:text-red-600">
         {name}
       </span>
     </div>

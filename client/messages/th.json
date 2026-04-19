@@ -50,5 +50,12 @@
 		"continueShopping": "กลับไปเลือกซื้อ",
 		"subtotal": "ยอดรวม",
 		"checkout": "ดำเนินการชำระเงิน"
+	},
+	"Footer": {
+	"brandName": "Thai Web",
+	"description": "ซูเปอร์มาร์เก็ตเอเชียที่ใหญ่และสดที่สุดในอิสราเอล",
+	"contactUs": "ติดต่อเรา",
+	"findUs": "ค้นหาเรา",
+	"openInWaze": "เปิดใน Waze"	
 	}
 }

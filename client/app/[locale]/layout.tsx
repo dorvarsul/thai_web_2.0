@@ -6,6 +6,8 @@ import { hasLocale } from 'next-intl';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import NavBar from '@/components/NavBar';
+import Footer from '@/components/Footer';
+
 
 const heebo = Heebo({
   variable: "--font-heebo",
@@ -41,6 +43,7 @@ export default async function LocaleLayout({
       <div className={heebo.variable} lang={locale} dir={direction}>
         <NavBar locale={locale} />
         {children}
+        <Footer locale={locale} />
       </div>
     </NextIntlClientProvider>
   );

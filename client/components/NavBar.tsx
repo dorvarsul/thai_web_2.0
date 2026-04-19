@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase-server';
 import CartBadge from './CartBadge';
 import LanguageSwitcher from './LanguageSwitcher';
+import Image from 'next/image';
 
 type NavbarProps = {
   locale: string;
@@ -23,11 +24,18 @@ export default async function Navbar({ locale }: NavbarProps) {
           
           {/* Right Side (RTL context) */}
           <div className="flex items-center gap-8">
-            <Link href={localeHref()} className="text-2xl font-bold text-blue-600 font-heebo">
-              תאי ווב
+            <Link href={localeHref()} className="flex items-center">
+              <Image 
+                src="/logo.png"
+                alt="Thai Shop Logo"
+                width={120}
+                height={40}
+                priority
+                className="h-10 w-auto"
+              />
             </Link>
             <div className="hidden md:flex gap-6 text-gray-600 font-medium">
-              <Link href={localeHref('/about')} className="hover:text-blue-500 transition">{t('about')}</Link>
+              <Link href={localeHref('/about')} className="hover:text-red-600 transition">{t('about')}</Link>
             </div>
           </div>
 
