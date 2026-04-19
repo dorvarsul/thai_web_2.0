@@ -1,0 +1,54 @@
+{
+	"Navbar": {
+		"about": "אודות",
+		"login": "התחברות",
+		"profile": "החשבון שלי",
+		"cart": "סל קניות"
+	},
+	"Auth": {
+		"email": "אימייל",
+		"password": "סיסמה",
+		"fullName": "שם מלא",
+		"confirmPassword": "אימות סיסמה",
+		"validation": {
+			"required": "שדה זה חובה",
+			"email": "כתובת אימייל לא תקינה",
+			"passwordMin": "הסיסמה חייבת להכיל לפחות 6 תווים",
+			"passwordMismatch": "הסיסמאות אינן תואמות"
+		}
+	},
+	"Login": {
+		"title": "התחברות",
+		"submit": "כניסה",
+		"loading": "מתחבר...",
+		"noAccount": "אין לך חשבון?",
+		"signupLink": "הרשמה",
+		"errors": {
+			"loginFailed": "ההתחברות נכשלה"
+		}
+	},
+	"Signup": {
+		"title": "הרשמה",
+		"submit": "צור חשבון",
+		"loading": "יוצר חשבון...",
+		"haveAccount": "כבר יש לך חשבון?",
+		"loginLink": "התחבר כאן",
+		"errors": {
+			"signupFailed": "ההרשמה נכשלה"
+		}
+	},
+	"Profile": {
+		"title": "הפרופיל שלי",
+		"email": "אימייל",
+		"id": "מזהה משתמש",
+		"logout": "התנתק מהמערכת",
+		"loading": "טוען..."
+	},
+	"Cart": {
+		"title": "סל הקניות",
+		"emptyTitle": "העגלה שלך ריקה",
+		"continueShopping": "חזור לקניות",
+		"subtotal": "סה\"כ לתשלום",
+		"checkout": "המשך לתשלום"
+	}
+}

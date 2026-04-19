@@ -17,8 +17,8 @@ const iconMap: Record<string, LucideIcon> = {
 
 // src/components/CategoryNav.tsx
 export default async function CategoryNav() {
-  const supabase = createClient()
-  const { data: categories } = await (await supabase).from('categories').select('*').order('name')
+  const supabase = await createClient()
+  const { data: categories } = await supabase.from('categories').select('*').order('name')
 
   return (
     <nav className="w-full overflow-hidden border-b border-slate-100 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
