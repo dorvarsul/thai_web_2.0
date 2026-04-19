@@ -62,5 +62,13 @@
 	"Hero": {
   	"title": "אוכל תאילנדי אותנטי עד הבית",
   	"searchPlaceholder": "איזה מוצרים תרצו לקנות?..."
-	}
+	},
+  	"Navigation": {
+    "allProducts": "כל המוצרים"
+  	},
+  	"HomePage": {
+    "featuredProducts": "המוצרים המובילים",
+    "addToCart": "הוסף לסל",
+	"imagePlaceholder": "תמונה"
+  }
 }

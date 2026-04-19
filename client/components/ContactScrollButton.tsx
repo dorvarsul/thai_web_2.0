@@ -1,7 +1,5 @@
 'use client';
 
-import { Phone } from 'lucide-react';
-
 export default function ContactScrollButton({ label }: { label: string }) {
   const scrollToFooter = () => {
     const footer = document.getElementById('contact-footer');

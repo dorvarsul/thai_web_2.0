@@ -1,24 +1,27 @@
 import { createClient } from '@/lib/supabase-server'
+import { getLocalizedField } from '@/lib/routing-helpers'
 import ProductCard from './ProductCard'
-
-type ProductCategory = {
-  name: string
-}
 
 type ProductRow = {
   id: string
   name: string
-  categories: ProductCategory | null
+  name_th?: string
+  name_he?: string
+  categories: any | null // Use any or a specific type reflecting localized category columns
   price: number
   description: string | null
+  description_th?: string
+  description_he?: string
   image_url: string | null
 }
 
-export default async function ProductGrid() {
+export default async function ProductGrid({ locale }: { locale: string }) {
   const supabase = await createClient()
+  
+  // Select all columns to ensure localized versions are fetched
   const { data: products } = await supabase
     .from('products')
-    .select('*, categories(name)')
+    .select('*, categories(*)') 
     .eq('is_active', true)
 
   return (
@@ -26,11 +29,16 @@ export default async function ProductGrid() {
       {(products as ProductRow[] | null)?.map((product) => (
         <ProductCard
           key={product.id}
+          locale={locale} // Pass locale to the card
           product={{
             id: product.id,
-            name: product.name,
+            // Localize the product name here or inside ProductCard
+            name: getLocalizedField(product, 'name', locale),
             price: Number(product.price),
-            categoryName: product.categories?.name ?? null,
+            // Localize the category name from the joined table
+            categoryName: product.categories 
+              ? getLocalizedField(product.categories, 'name', locale) 
+              : null,
             imageUrl: product.image_url,
           }}
         />

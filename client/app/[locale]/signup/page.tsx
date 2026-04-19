@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createClient } from '@/lib/supabase-client';
+import { sanitizeInternalRedirectPath } from '@/lib/routing-helpers';
 
 type SignupFormValues = {
   fullName: string;
@@ -21,7 +22,10 @@ export default function SignupPage() {
   const searchParams = useSearchParams();
   const t = useTranslations('Signup');
   const formT = useTranslations('Auth');
-  const nextPath = searchParams.get('next') ?? `/${locale}/profile`;
+  const nextPath = sanitizeInternalRedirectPath(searchParams.get('next'), {
+    locale,
+    fallbackPath: `/${locale}/profile`,
+  });
 
   const schema = z.object({
     fullName: z.string().min(1, formT('validation.required')),

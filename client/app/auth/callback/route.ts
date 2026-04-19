@@ -1,19 +1,17 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { routing } from '@/i18n/routing';
+import { sanitizeInternalRedirectPath } from '@/lib/routing-helpers';
 
-function resolveNextPath(nextPath: string | null) {
-  if (!nextPath) {
-    return `/${routing.defaultLocale}`;
-  }
-
-  return nextPath.startsWith('/') ? nextPath : `/${routing.defaultLocale}`;
-}
+const FALLBACK_PATH = `/${routing.defaultLocale}`;
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
-  const nextPath = resolveNextPath(requestUrl.searchParams.get('next'));
+  const nextPath = sanitizeInternalRedirectPath(requestUrl.searchParams.get('next'), {
+    locale: routing.defaultLocale,
+    fallbackPath: FALLBACK_PATH,
+  });
   const response = NextResponse.redirect(new URL(nextPath, requestUrl.origin));
 
   const supabase = createServerClient(

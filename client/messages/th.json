@@ -62,5 +62,13 @@
 	"Hero": {
   	"title": "อาหารไทยต้นตำรับส่งตรงถึงบ้านคุณ",
   	"searchPlaceholder": "คุณต้องการซื้ออะไร?..."
-	}
+	},
+	"Navigation": {
+    "allProducts": "สินค้าทั้งหมด"
+  	},
+  	"HomePage": {
+    "featuredProducts": "สินค้าแนะนำ",
+    "addToCart": "เพิ่มในรถเข็น",
+	"imagePlaceholder": "รูปภาพ"
+  	}
 }

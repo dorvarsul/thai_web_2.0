@@ -2,6 +2,7 @@ import createMiddleware from 'next-intl/middleware';
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { routing } from './i18n/routing';
+import { getLocaleFromPathname } from '@/lib/routing-helpers';
 
 const handleI18nRouting = createMiddleware(routing);
 
@@ -9,11 +10,6 @@ function copyCookies(source: NextResponse, destination: NextResponse) {
   source.cookies.getAll().forEach(({ name, value }) => {
     destination.cookies.set(name, value);
   });
-}
-
-function getLocaleFromPathname(pathname: string) {
-  const locale = pathname.split('/')[1];
-  return routing.locales.includes(locale as (typeof routing.locales)[number]) ? locale : routing.defaultLocale;
 }
 
 export default async function proxy(request: NextRequest) {

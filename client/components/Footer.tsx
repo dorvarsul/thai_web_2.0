@@ -1,12 +1,12 @@
 import { Phone, MapPin, Navigation } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 
-export default async function Footer({ locale }: { locale: string }) {
+export default async function Footer() {
   const t = await getTranslations('Footer');
 
   // Replace with your actual data
-  const phone = "050-123-4567";
-  const address = "Ha-Namal St 40, Haifa, Israel";
+  const phone = "050-232-2229";
+  const address = "ישראל פולק 10, קריית גת";
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
   const wazeUrl = `https://waze.com/ul?q=${encodeURIComponent(address)}&navigate=yes`;
 

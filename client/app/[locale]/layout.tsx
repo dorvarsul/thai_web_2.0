@@ -43,7 +43,7 @@ export default async function LocaleLayout({
       <div className={heebo.variable} lang={locale} dir={direction}>
         <NavBar locale={locale} />
         {children}
-        <Footer locale={locale} />
+        <Footer />
       </div>
     </NextIntlClientProvider>
   );
