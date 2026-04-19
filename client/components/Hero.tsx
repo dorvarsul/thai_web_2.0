@@ -8,18 +8,15 @@ export default function Hero() {
         className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage:
-            "url('https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=1920&q=80')",
+            "url('/shop_banner.png')"
         }}
       />
-      <div className="absolute inset-0 bg-[#2b57a7]/85" />
+      <div className="absolute inset-0 bg-[#2b57a7]/45" />
 
       <div className="relative z-10 mx-auto w-full max-w-5xl space-y-6 md:space-y-8">
-        <h1 className="text-4xl font-black leading-tight drop-shadow-sm md:text-6xl">
+        <h1 className="text-4xl font-black leading-tight drop-shadow-xl md:text-6xl">
           אוכל תאילנדי אותנטי עד הבית
         </h1>
-        <p className="text-lg font-semibold opacity-90 md:text-xl">
-          משלוח חינם בקנייה מעל 500 ש&quot;ח
-        </p>
 
         <div className="relative mx-auto mt-3 w-full max-w-3xl md:mt-4">
           <input
