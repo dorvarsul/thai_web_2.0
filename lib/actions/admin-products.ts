@@ -45,6 +45,7 @@ export async function upsertProduct(data: unknown) {
     name_th: translatedNameTh,
     description_he: optionalString(result.data.description_he),
     description_th: translatedDescriptionTh,
+    image_url: optionalString(result.data.image_url),
   };
 
   // 3. Database Operation

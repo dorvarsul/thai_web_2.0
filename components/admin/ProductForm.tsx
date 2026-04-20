@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { upsertProduct } from '@/lib/actions/admin-products';
 import { ProductInput } from '@/lib/product-validation';
+import { createClient } from '@/lib/supabase-client'; // Ensure this points to your BROWSER client helper
 
 interface Props {
   initialData?: Partial<ProductInput>;
@@ -13,9 +14,47 @@ interface Props {
 
 export default function ProductForm({ initialData, categories, locale }: Props) {
   const router = useRouter();
+  const supabase = createClient(); // Client-side instance
   const safeLocale = locale || 'he';
+  
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Track the image URL in state
+  const [imageUrl, setImageUrl] = useState(initialData?.image_url || '');
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      setError(null);
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `products/${fileName}`;
+
+      // 1. Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // 2. Get Public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(filePath);
+
+      setImageUrl(publicUrl);
+    } catch (err: any) {
+      setError(err.message || 'Failed to upload image');
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
@@ -25,6 +64,9 @@ export default function ProductForm({ initialData, categories, locale }: Props) 
       Array.from(formData.entries()).map(([key, value]) => [key, typeof value === 'string' ? value : ''])
     ) as Record<string, string>;
     
+    // Inject the image URL from state into the data sent to the Server Action
+    rawData.image_url = imageUrl;
+
     if (initialData?.id) {
       rawData.id = initialData.id;
     }
@@ -32,7 +74,6 @@ export default function ProductForm({ initialData, categories, locale }: Props) 
     const result = await upsertProduct(rawData);
 
     if (result?.error) {
-      // Result.error can be a Zod error object or a string
       setError(typeof result.error === 'string' ? result.error : 'Validation Error: Please check all fields.');
       setLoading(false);
     } else {
@@ -49,8 +90,32 @@ export default function ProductForm({ initialData, categories, locale }: Props) 
         </div>
       )}
 
+      {/* Image Upload Section */}
+      <div className="bg-gray-50 p-6 rounded-lg border border-dashed border-gray-300">
+        <label className="block text-sm font-semibold text-gray-700 mb-4">Product Image</label>
+        <div className="flex items-center gap-6">
+          {imageUrl && (
+            <div className="relative w-32 h-32 rounded-lg overflow-hidden border bg-white">
+              <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
+            </div>
+          )}
+          <div className="flex-1">
+            <input 
+              type="file" 
+              accept="image/*" 
+              onChange={handleImageUpload}
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+              disabled={uploading}
+            />
+            <p className="mt-2 text-xs text-gray-500">
+              {uploading ? 'Uploading image...' : 'PNG, JPG or WEBP. Max 2MB.'}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Primary Configuration */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1">Category</label>
           <select 
@@ -60,7 +125,7 @@ export default function ProductForm({ initialData, categories, locale }: Props) 
           >
             {categories.map(cat => (
               <option key={cat.id} value={cat.id}>
-                {cat.name_th} / {cat.name_he}
+                {cat.name_he} / {cat.name_th}
               </option>
             ))}
           </select>
@@ -79,7 +144,7 @@ export default function ProductForm({ initialData, categories, locale }: Props) 
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">Stock Quantity</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">Stock</label>
           <input 
             name="stock_quantity" 
             type="number" 
@@ -92,72 +157,28 @@ export default function ProductForm({ initialData, categories, locale }: Props) 
 
       <hr className="border-gray-100" />
 
-      {/* Multilingual Content Section */}
+      {/* Multilingual Content Section (Existing) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         {/* Thai Column */}
         <div className="space-y-4 p-4 bg-blue-50/30 rounded-lg border border-blue-100">
-          <h3 className="font-bold text-blue-800 flex items-center gap-2">
-            🇹🇭 Thai Content (optional)
-          </h3>
-          <div>
-            <label className="block text-xs font-bold text-blue-600 uppercase mb-1">Product Name (optional)</label>
-            <input 
-              name="name_th" 
-              placeholder="ชื่อสินค้า" 
-              defaultValue={initialData?.name_th} 
-              className="w-full border border-blue-200 rounded-lg p-2.5 focus:border-blue-500 outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-blue-600 uppercase mb-1">Description (optional)</label>
-            <textarea 
-              name="description_th" 
-              placeholder="คำอธิบายสินค้า..." 
-              defaultValue={initialData?.description_th} 
-              className="w-full border border-blue-200 rounded-lg p-2.5 h-40 focus:border-blue-500 outline-none" 
-            />
-          </div>
+          <h3 className="font-bold text-blue-800 flex items-center gap-2">🇹🇭 Thai Content</h3>
+          <input name="name_th" placeholder="ชื่อสินค้า" defaultValue={initialData?.name_th} className="w-full border border-blue-200 rounded-lg p-2.5 focus:border-blue-500 outline-none" />
+          <textarea name="description_th" placeholder="คำอธิบายสินค้า..." defaultValue={initialData?.description_th} className="w-full border border-blue-200 rounded-lg p-2.5 h-40 focus:border-blue-500 outline-none" />
         </div>
 
         {/* Hebrew Column */}
         <div className="space-y-4 p-4 bg-red-50/30 rounded-lg border border-red-100">
-          <h3 className="font-bold text-red-800 flex items-center gap-2 justify-end">
-            Hebrew Content 🇮🇱
-          </h3>
-          <div>
-            <label className="block text-xs font-bold text-red-600 uppercase mb-1 text-right">שם המוצר</label>
-            <input 
-              name="name_he" 
-              placeholder="שם המוצר" 
-              defaultValue={initialData?.name_he} 
-              className="w-full border border-red-200 rounded-lg p-2.5 text-right focus:border-red-500 outline-none" 
-              dir="rtl"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-red-600 uppercase mb-1 text-right">תיאור</label>
-            <textarea 
-              name="description_he" 
-              placeholder="תיאור המוצר..." 
-              defaultValue={initialData?.description_he} 
-              className="w-full border border-red-200 rounded-lg p-2.5 h-40 text-right focus:border-red-500 outline-none" 
-              dir="rtl"
-            />
-          </div>
+          <h3 className="font-bold text-red-800 flex items-center gap-2 justify-end">Hebrew Content 🇮🇱</h3>
+          <input name="name_he" placeholder="שם המוצר" defaultValue={initialData?.name_he} className="w-full border border-red-200 rounded-lg p-2.5 text-right focus:border-red-500 outline-none" dir="rtl" />
+          <textarea name="description_he" placeholder="תיאור המוצר..." defaultValue={initialData?.description_he} className="w-full border border-red-200 rounded-lg p-2.5 h-40 text-right focus:border-red-500 outline-none" dir="rtl" />
         </div>
       </div>
 
       <div className="flex justify-end gap-4 border-t pt-6">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="px-6 py-2.5 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition"
-        >
-          Cancel
-        </button>
+        <button type="button" onClick={() => router.back()} className="px-6 py-2.5 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition">Cancel</button>
         <button 
           type="submit" 
-          disabled={loading}
+          disabled={loading || uploading}
           className="bg-slate-900 text-white px-10 py-2.5 rounded-lg font-bold hover:bg-black disabled:opacity-50 shadow-lg shadow-gray-200 transition-all active:scale-95"
         >
           {loading ? 'Processing...' : (initialData?.id ? 'Update Product' : 'Create Product')}
