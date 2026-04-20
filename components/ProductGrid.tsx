@@ -7,7 +7,14 @@ type ProductRow = {
   name: string
   name_th?: string
   name_he?: string
-  categories: any | null // Use any or a specific type reflecting localized category columns
+  categories:
+    | {
+        id: string
+        name?: string
+        name_th?: string
+        name_he?: string
+      }
+    | null
   price: number
   description: string | null
   description_th?: string

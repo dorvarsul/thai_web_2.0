@@ -50,7 +50,8 @@
 		"emptyTitle": "ตะกร้าของคุณว่างเปล่า",
 		"continueShopping": "กลับไปเลือกซื้อ",
 		"subtotal": "ยอดรวม",
-		"checkout": "ดำเนินการชำระเงิน"
+		"checkout": "ดำเนินการชำระเงิน",
+		"whatsappCheckout": "ส่งคำสั่งซื้อผ่าน WhatsApp"
 	},
 	"Footer": {
 	"brandName": "Thai Web",
@@ -64,11 +65,26 @@
   	"searchPlaceholder": "คุณต้องการซื้ออะไร?..."
 	},
 	"Navigation": {
+	"back": "ย้อนกลับ",
     "allProducts": "สินค้าทั้งหมด"
   	},
   	"HomePage": {
     "featuredProducts": "สินค้าแนะนำ",
-    "addToCart": "เพิ่มในรถเข็น",
 	"imagePlaceholder": "รูปภาพ"
+  	},
+	"Categories": {
+    "searchIn": "ค้นหาใน",
+    "noResults": "ไม่พบผลลัพธ์สำหรับ",
+    "emptyCategory": "หมวดหมู่นี้ยังไม่มีสินค้าในขณะนี้"
+  	},
+	"Products": {
+    "allTitle": "สินค้าทั้งหมด",
+    "searchPlaceholder": "ค้นหาสินค้า...",
+    "noResults": "ไม่พบสินค้าที่คุณกำลังมองหา",
+    "searchIn": "ค้นหาใน"
+  },
+  "Buttons": {
+    "back": "ย้อนกลับ",
+    "addToCart": "เพิ่มลงตะกร้า"
   	}
 }

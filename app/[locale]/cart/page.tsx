@@ -4,6 +4,7 @@ import { useCart } from '@/store/useCart';
 import { Trash2, Plus, Minus } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
+import WhatsAppCheckoutButton from '@/components/cart/WhatsAppCheckoutButton';
 
 export default function CartPage() {
   const { items, removeItem, addItem } = useCart();
@@ -45,9 +46,7 @@ export default function CartPage() {
       </div>
       <div className="mt-8 p-6 bg-slate-100 rounded-xl flex justify-between items-center">
         <span className="text-xl font-bold">{t('subtotal')}: {total} ₪</span>
-        <button className="bg-green-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-green-700 transition">
-          {t('checkout')}
-        </button>
+        <WhatsAppCheckoutButton items={items} />
       </div>
     </div>
   );

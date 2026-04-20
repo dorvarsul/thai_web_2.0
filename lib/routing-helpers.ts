@@ -61,8 +61,14 @@ export function sanitizeInternalRedirectPath(
   }
 }
 
-export function getLocalizedField(item: any, field: string, locale: string) {
+export function getLocalizedField<T extends object>(
+  item: T | null | undefined,
+  field: string,
+  locale: string
+) {
   if (!item) return '';
+
+  const source = item as Record<string, unknown>;
   
   const localizedKey = `${field}_${locale}`;     // e.g., 'name_th' or 'name_he'
   const fallbackKey = `${field}_he`;             // e.g., 'name_he' (your new standard)
@@ -70,5 +76,15 @@ export function getLocalizedField(item: any, field: string, locale: string) {
   // 1. Try the current locale (e.g., name_th)
   // 2. If missing, try the standard fallback (name_he)
   // 3. Last resort, empty string
-  return item[localizedKey] || item[fallbackKey] || '';
+  const localizedValue = source[localizedKey];
+  if (typeof localizedValue === 'string' && localizedValue.length > 0) {
+    return localizedValue;
+  }
+
+  const fallbackValue = source[fallbackKey];
+  if (typeof fallbackValue === 'string' && fallbackValue.length > 0) {
+    return fallbackValue;
+  }
+
+  return '';
 }

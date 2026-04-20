@@ -2,158 +2,149 @@
 
 ## Overview
 
-This repository contains a multilingual Thai e-commerce storefront built with Next.js App Router, Supabase, next-intl, Tailwind CSS, and Zustand. The actual application lives in the `client` workspace; the root of the repository mainly holds supporting Supabase assets and repository-level notes.
+Thai Web 2 is a multilingual storefront built with Next.js App Router, Supabase, next-intl, Tailwind CSS, and Zustand.
 
-The app is organized around a simple split:
+The repository is now flattened. The Next.js application, i18n assets, and shared libraries live at the repository root. Supabase migrations and seed data remain under `supabase/`.
+
+Core runtime split:
 
 - Server components fetch catalog and user data.
-- Client components handle browser-only interaction such as cart updates, form submission, and locale switching.
-- Supabase provides authentication and catalog persistence.
-- next-intl provides locale-aware routing and translations.
+- Client components handle browser-only behavior (cart updates, form interaction, locale switching).
+- Supabase provides authentication and data persistence.
+- next-intl provides locale routing and translation loading.
 
-## Architectural Intent
+## Engineering Intent
 
-The design favors low-friction delivery of a storefront with a clear separation between presentation, data access, and state.
+### Why this structure
 
-- The UI is mostly server-rendered for fast initial loads and direct data access.
-- Interactive features are isolated into client components so browser state stays local and predictable.
-- Cart state is stored in the browser with Zustand persistence, which avoids needing a backend cart service in the current phase.
-- Localization is route-driven, which keeps language-specific content aligned with URL structure and rendering direction.
+- Keep rendering server-first for fast initial paint and straightforward data loading.
+- Keep interactive state local to client components to avoid unnecessary server complexity.
+- Keep policy logic in shared helpers (`lib/`) and keep pages/components focused on orchestration and rendering.
+- Keep authentication and redirect rules centralized to reduce security drift.
+
+### Current decomposition strategy
+
+Recent refactors intentionally split larger UI modules into smaller pieces:
+
+- Authentication pages use shared building blocks (`components/auth/`) instead of repeating field and card logic.
+- Navbar behavior is split into subcomponents (`components/navbar/` and `components/icons/`).
+- Validation schemas are centralized in `lib/auth-validation.ts`.
+- Admin product creation keeps Thai fields optional and fills missing Thai content from Hebrew via server-side translation before persistence.
+- Cart checkout is intentionally not a server order flow; it assembles a WhatsApp handoff message from the current cart items and opens WhatsApp directly.
+
+This supports readability and reduces repetitive logic per file.
 
 ## Security Posture
 
-### Authentication and Session
+### Authentication and session
 
 - Supabase Auth is the source of truth for identity.
-- Server-side session cookies are managed through Supabase SSR clients (`supabase-server.ts` and middleware client setup in `proxy.ts`).
-- Protected routes are enforced in middleware before page rendering.
+- Server-side session cookies are handled by SSR helpers in `lib/supabase-server.ts` and request middleware in `proxy.ts`.
+- Sensitive routes are checked before rendering.
 
 ### Authorization
 
-- Route-level checks protect profile and admin pages in middleware.
-- Admin permissions are enforced against `profiles.role`.
-- Database-level Row Level Security (RLS) remains the final authority for table access.
+- UX-level guards live in middleware and route logic.
+- Data-level authorization is enforced by Supabase RLS policies.
+- `profiles.role` drives role-aware behavior where required.
 
-### Redirect Safety
+### Redirect safety
 
-- Untrusted `next` query values are sanitized through `client/lib/routing-helpers.ts`.
-- Redirects now require app-internal paths, reject protocol-relative targets (`//...`), and normalize locale prefixing.
-- Auth callback/login/signup all use the same sanitization logic to avoid divergence.
+- Untrusted `next` query values are sanitized through `lib/routing-helpers.ts`.
+- Redirects must be internal paths.
+- Protocol-relative and malformed paths are rejected.
+- Locale prefix normalization is enforced for auth flows.
 
 ## Main Runtime Flow
 
-1. The root route redirects to the default locale.
-2. The locale layout validates the locale, loads translations, sets text direction, and renders the shared navigation shell.
-3. The home page renders a hero section, category navigation, and the product grid.
-4. Product and category data are fetched from Supabase on the server.
-5. The product card adds items to the Zustand cart in local storage.
-6. Authentication pages use the Supabase browser client and redirect through the auth callback route.
+1. `app/page.tsx` redirects to the default locale.
+2. `app/[locale]/layout.tsx` validates locale, loads locale messages, sets text direction, and renders shared shell.
+3. Home page composes hero, category navigation, and product grid.
+4. Products and categories are loaded from Supabase in server components.
+5. Product cards dispatch cart updates through Zustand (`store/useCart.ts`).
+6. Login and signup use browser Supabase client and redirect via sanitized paths.
+7. Admin product save operations validate the Hebrew fields, auto-fill missing Thai fields, and persist localized values.
+8. Cart checkout opens WhatsApp with a prefilled Hebrew order summary and line-item pricing.
+9. Auth callback route exchanges auth code/session and returns users to safe in-app destinations.
 
-## Folder Structure
+## Current Project Structure
 
-### Repository Root
+### Repository root
 
-- `README.md`: High-level repository notes.
-- `package.json`: Minimal root-level package file with Supabase tooling.
-- `supabase/`: Database migrations, seed data, and Supabase config.
-- `client/`: The Next.js storefront application.
-- `server/`: Present as a separate folder, but not currently a major part of the visible application flow.
+- `app/`: App Router pages, layouts, and route handlers.
+- `components/`: UI and feature components.
+- `components/auth/`: Shared auth UI building blocks.
+- `components/navbar/`: Navbar subcomponents.
+- `components/icons/`: Isolated icon components.
+- `i18n/`: Routing and request-level translation loading.
+- `lib/`: Shared helpers and adapters (routing, auth validation, Supabase clients).
+- `messages/`: Locale dictionaries (`he.json`, `th.json`).
+- `store/`: Client state (Zustand cart store).
+- `supabase/`: Migrations, seed data, and config.
 
-### `client/`
+### App routes
 
-#### `client/app/`
-
-Next.js App Router entry points and route segments.
-
-- `layout.tsx`: Root HTML shell and body-level styles.
-- `page.tsx`: Redirects to the default locale.
-- `[locale]/layout.tsx`: Locale-aware shell that loads messages, sets direction, and renders the navbar.
-- `[locale]/page.tsx`: Home page composed from the hero, categories, and product grid.
-- `[locale]/about/page.tsx`: Static about page.
-- `[locale]/cart/page.tsx`: Client-side cart page.
-- `[locale]/login/page.tsx`: Supabase login form.
-- `[locale]/signup/page.tsx`: Supabase registration form.
-- `[locale]/profile/page.tsx`: Authenticated profile screen.
-- `auth/callback/route.ts`: Handles the Supabase email/OAuth callback and session exchange.
-
-#### `client/components/`
-
-Reusable UI and feature components.
-
-- `NavBar.tsx`: Shared top navigation, user menu state, cart badge, and locale switcher.
-- `Hero.tsx`: Landing page hero section and search input.
-- `CategoryNav.tsx`: Category navigation strip loaded from Supabase.
-- `ProductGrid.tsx`: Server-rendered product listing.
-- `ProductCard.tsx`: Interactive product tile that adds items to the cart.
-- `CartBadge.tsx`: Header cart indicator that reflects stored cart state.
-- `LanguageSwitcher.tsx`: Client-side locale toggle.
-
-#### `client/lib/`
-
-Supabase client factories.
-
-- `supabase-client.ts`: Browser client for interactive auth and client-side calls.
-- `supabase-server.ts`: Server client that reads and writes cookies for authenticated server rendering.
-- `routing-helpers.ts`: Shared locale parsing and redirect sanitization helpers used by auth and middleware.
-
-#### `client/store/`
-
-- `useCart.ts`: Zustand store for cart items, persistence, and item mutation helpers.
-
-#### `client/i18n/`
-
-- `routing.ts`: Locale definition and routing behavior.
-- `request.ts`: Loads the correct locale messages for each request.
-
-#### `client/messages/`
-
-Translation dictionaries.
-
-- `he.json`: Hebrew strings.
-- `th.json`: Thai strings.
-
-#### `client/public/`
-
-Static assets served directly by Next.js.
+- `app/layout.tsx`: Root shell.
+- `app/page.tsx`: Redirect to default locale.
+- `app/[locale]/layout.tsx`: Locale shell and top-level composition.
+- `app/[locale]/page.tsx`: Home page.
+- `app/[locale]/products/page.tsx`: All products view.
+- `app/[locale]/categories/[slug]/page.tsx`: Category view with search.
+- `app/[locale]/admin/products/page.tsx`: Admin product list.
+- `app/[locale]/admin/products/new/page.tsx`: Admin product create form.
+- `app/[locale]/admin/products/[id]/page.tsx`: Admin product edit form with localized field hydration.
+- `app/[locale]/cart/page.tsx`: Client cart view.
+- `app/[locale]/login/page.tsx`: Login form.
+- `app/[locale]/signup/page.tsx`: Signup form.
+- `app/[locale]/profile/page.tsx`: Authenticated user profile.
+- `app/auth/callback/route.ts`: Supabase auth callback.
 
 ## Data Layer
 
-The Supabase schema in `supabase/migrations/20260418005145_initial_catalog_schema.sql` defines the core business entities:
+Primary schema is defined by:
 
-- `profiles`: user metadata and roles.
-- `categories`: catalog grouping with SEO-friendly slugs.
-- `products`: product records, stock, pricing, and activation state.
+- `supabase/migrations/20260418005145_initial_catalog_schema.sql`
+- `supabase/migrations/20260419185625_create_product_translations.sql`
+- `supabase/migrations/20260419195507_update_categories.sql`
 
-Row-level security is enabled on the core tables. Public users can read active products and categories, while admin access is reserved by policy checks against the `profiles` table. A trigger creates a profile automatically when a new auth user signs up.
+Key entities:
 
-## State and Auth Model
+- `profiles`: user profile and role data.
+- `categories`: category slug plus localized names.
+- `products`: product inventory and localized fields.
+- Products are identified by database `id`; the admin dashboard no longer relies on product slugs because there is no dedicated product detail page.
 
-The app currently uses three state channels:
+Seed strategy:
 
-- Server state from Supabase for products, categories, and authenticated user data.
-- Browser auth state through the Supabase client in login and signup forms.
-- Client-local cart state through Zustand with localStorage persistence.
+- `supabase/seed.sql` inserts base catalog and applies localized fields for Hebrew and Thai.
 
-This keeps checkout-free storefront interactions simple, while leaving room for a future server-backed order or cart system if the project grows.
+## Localization Model
+
+- Supported locales are defined in `i18n/routing.ts`.
+- Request-time message loading happens in `i18n/request.ts`.
+- UI translations live in `messages/he.json` and `messages/th.json`.
+- Domain objects (category/product names and descriptions) are localized via DB columns (`*_he`, `*_th`) with helper fallback logic in `lib/routing-helpers.ts`.
+
+## State Model
+
+The application intentionally keeps state simple:
+
+- Server state: product/category/user data from Supabase.
+- Client auth interactions: login/signup/profile actions via browser Supabase client.
+- Client cart state: Zustand + localStorage persistence.
+- Cart submission is a user-initiated outbound WhatsApp message, not a backend order persistence flow.
+
+This is sufficient for a browsing-first storefront and keeps write complexity low.
 
 ## Constraints and Safety Notes
 
-- The cart is local-only, so it is not synchronized across devices or browsers.
-- Locale behavior depends on valid route prefixes; invalid locales fall through to a 404.
-- Product and category reads assume the Supabase schema and policies are in place.
-- Authentication flows depend on environment variables for the Supabase URL and anon key.
-- Because some pages are server components and others are client components, browser-only APIs must stay inside client-marked modules.
-- Middleware route guards complement but do not replace RLS policies.
-- Local `.env` files must remain untracked; use `.env.example` templates for sharing config.
-
-## Refactor Plan (Architecture Validator)
-
-- Keep policy in shared helpers and keep framework wiring thin:
-	move locale and redirect validation into `client/lib/routing-helpers.ts`, while route handlers/pages only orchestrate flow.
-- Enforce single redirect policy everywhere:
-	all auth-related redirects must go through the sanitizer to avoid inconsistent behavior.
-- Keep authorization layered:
-	middleware handles user experience routing, RLS handles hard data boundaries.
+- Cart is local-only and not synchronized across devices.
+- Locale prefix must remain valid; unknown locales should fail safely.
+- Middleware checks improve UX but do not replace RLS.
+- Browser-only APIs must stay in client components.
+- Environment variables for Supabase URL and anon key are required for auth/data flows.
+- Keep `.env.local` untracked.
+- WhatsApp handoff text is intentionally formatted in Hebrew and should remain concise so the final message stays readable in chat.
 
 ## ADR-004: Centralized Redirect Sanitization
 
@@ -163,23 +154,29 @@ Accepted
 
 ### Context
 
-Auth flows accepted a `next` query value from user-controlled input. Scattered redirect handling created risk of open redirects and locale inconsistencies.
+Auth flows accepted user-controlled redirect values. Distributed redirect logic increased open-redirect risk and locale inconsistency.
 
 ### Decision
 
-Introduce a shared redirect sanitization function and locale utility in `client/lib/routing-helpers.ts`, then use it in:
+Use a shared redirect sanitizer in `lib/routing-helpers.ts` and apply it consistently in:
 
-- `client/app/auth/callback/route.ts`
-- `client/app/[locale]/login/page.tsx`
-- `client/app/[locale]/signup/page.tsx`
-- `client/proxy.ts` (locale helper reuse)
+- `app/auth/callback/route.ts`
+- `app/[locale]/login/page.tsx`
+- `app/[locale]/signup/page.tsx`
+- `proxy.ts`
 
 ### Consequences
 
-- Positive: A single auditable redirect policy reduces security regressions.
-- Positive: Locale handling is consistent across middleware and route handlers.
-- Tradeoff: Minor coupling to shared helper API; helper changes require coordinated updates.
+- Positive: one auditable redirect policy.
+- Positive: consistent locale-aware redirect behavior.
+- Tradeoff: shared helper changes affect multiple integration points.
+
+## Operational Sanity Baseline
+
+- Lint command is `npm run lint` and uses ESLint CLI (`eslint .`).
+- Build command is `npm run build`.
+- Architecture changes should preserve pass status for both commands.
 
 ## Summary
 
-The codebase is intentionally compact: Next.js handles routing and rendering, Supabase handles persistence and auth, next-intl handles localization, and Zustand handles ephemeral client state. The structure is suitable for a storefront that needs fast server-rendered pages, bilingual UI, and a small but coherent feature set.
+The codebase is compact by design: Next.js for rendering/routing, Supabase for auth/data, next-intl for localization, and Zustand for lightweight client cart state. The current structure emphasizes clear boundaries, reusable subcomponents, and centralized safety policy.

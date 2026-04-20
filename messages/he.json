@@ -50,7 +50,8 @@
 		"emptyTitle": "העגלה שלך ריקה",
 		"continueShopping": "חזור לקניות",
 		"subtotal": "סה\"כ לתשלום",
-		"checkout": "המשך לתשלום"
+		"checkout": "המשך לתשלום",
+		"whatsappCheckout": "שלח הזמנה ב-WhatsApp"
 	},
 	"Footer": {
 		"brandName": "עדן תאי שופ",
@@ -64,11 +65,26 @@
   	"searchPlaceholder": "איזה מוצרים תרצו לקנות?..."
 	},
   	"Navigation": {
-    "allProducts": "כל המוצרים"
+    "allProducts": "כל המוצרים",
+	"back": "חזור"
   	},
   	"HomePage": {
     "featuredProducts": "המוצרים המובילים",
-    "addToCart": "הוסף לסל",
 	"imagePlaceholder": "תמונה"
-  }
+  	},
+	"Categories": {
+    "searchIn": "חפש ב-",
+    "noResults": "לא נמצאו תוצאות עבור",
+    "emptyCategory": "קטגוריה זו ריקה כרגע."
+  	},
+	"Products": {
+		"allTitle": "כל המוצרים",
+		"searchPlaceholder": "חפש מוצרים...",
+		"noResults": "לא מצאנו את מה שחיפשת",
+		"searchIn": "חפש ב-"
+	},
+	"Buttons": {
+		"back": "חזור",
+		"addToCart": "הוסף לסל"
+	}
 }

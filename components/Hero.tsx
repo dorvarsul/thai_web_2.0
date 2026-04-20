@@ -1,7 +1,9 @@
-import { Search } from 'lucide-react'
 import { useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
+import SearchBar from '@/components/SearchBar';
 
 export default function Hero() {
+  const locale = useLocale();
   const t = useTranslations('Hero');
 
   return (
@@ -20,15 +22,13 @@ export default function Hero() {
         {t('title')}
         </h1>
 
-        <div className="relative mx-auto mt-3 w-full max-w-3xl md:mt-4">
-          <input
-            type="text"
+        <div className="mx-auto mt-3 w-full max-w-3xl md:mt-4">
+          <SearchBar
+            key={`hero-search-${locale}`}
             placeholder={t('searchPlaceholder')}
-            className="w-full rounded-full border border-white/40 bg-white px-8 py-5 pr-14 text-right text-lg text-slate-900 shadow-[0_20px_45px_rgba(15,23,42,0.25)] outline-none transition-all placeholder:text-slate-400 focus:border-white focus:ring-4 focus:ring-white/35"
+            targetPath={`/${locale}/products`}
+            initialQuery=""
           />
-          <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400">
-            <Search size={24} />
-          </div>
         </div>
       </div>
     </section>
