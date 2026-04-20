@@ -20,6 +20,26 @@ The design favors low-friction delivery of a storefront with a clear separation 
 - Cart state is stored in the browser with Zustand persistence, which avoids needing a backend cart service in the current phase.
 - Localization is route-driven, which keeps language-specific content aligned with URL structure and rendering direction.
 
+## Security Posture
+
+### Authentication and Session
+
+- Supabase Auth is the source of truth for identity.
+- Server-side session cookies are managed through Supabase SSR clients (`supabase-server.ts` and middleware client setup in `proxy.ts`).
+- Protected routes are enforced in middleware before page rendering.
+
+### Authorization
+
+- Route-level checks protect profile and admin pages in middleware.
+- Admin permissions are enforced against `profiles.role`.
+- Database-level Row Level Security (RLS) remains the final authority for table access.
+
+### Redirect Safety
+
+- Untrusted `next` query values are sanitized through `client/lib/routing-helpers.ts`.
+- Redirects now require app-internal paths, reject protocol-relative targets (`//...`), and normalize locale prefixing.
+- Auth callback/login/signup all use the same sanitization logic to avoid divergence.
+
 ## Main Runtime Flow
 
 1. The root route redirects to the default locale.
@@ -74,6 +94,7 @@ Supabase client factories.
 
 - `supabase-client.ts`: Browser client for interactive auth and client-side calls.
 - `supabase-server.ts`: Server client that reads and writes cookies for authenticated server rendering.
+- `routing-helpers.ts`: Shared locale parsing and redirect sanitization helpers used by auth and middleware.
 
 #### `client/store/`
 
@@ -122,6 +143,42 @@ This keeps checkout-free storefront interactions simple, while leaving room for 
 - Product and category reads assume the Supabase schema and policies are in place.
 - Authentication flows depend on environment variables for the Supabase URL and anon key.
 - Because some pages are server components and others are client components, browser-only APIs must stay inside client-marked modules.
+- Middleware route guards complement but do not replace RLS policies.
+- Local `.env` files must remain untracked; use `.env.example` templates for sharing config.
+
+## Refactor Plan (Architecture Validator)
+
+- Keep policy in shared helpers and keep framework wiring thin:
+	move locale and redirect validation into `client/lib/routing-helpers.ts`, while route handlers/pages only orchestrate flow.
+- Enforce single redirect policy everywhere:
+	all auth-related redirects must go through the sanitizer to avoid inconsistent behavior.
+- Keep authorization layered:
+	middleware handles user experience routing, RLS handles hard data boundaries.
+
+## ADR-004: Centralized Redirect Sanitization
+
+### Status
+
+Accepted
+
+### Context
+
+Auth flows accepted a `next` query value from user-controlled input. Scattered redirect handling created risk of open redirects and locale inconsistencies.
+
+### Decision
+
+Introduce a shared redirect sanitization function and locale utility in `client/lib/routing-helpers.ts`, then use it in:
+
+- `client/app/auth/callback/route.ts`
+- `client/app/[locale]/login/page.tsx`
+- `client/app/[locale]/signup/page.tsx`
+- `client/proxy.ts` (locale helper reuse)
+
+### Consequences
+
+- Positive: A single auditable redirect policy reduces security regressions.
+- Positive: Locale handling is consistent across middleware and route handlers.
+- Tradeoff: Minor coupling to shared helper API; helper changes require coordinated updates.
 
 ## Summary
 
