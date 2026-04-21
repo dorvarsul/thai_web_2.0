@@ -69,6 +69,26 @@ export async function upsertProduct(data: unknown) {
 
 export async function deleteProduct(id: string) {
   const supabase = await createClient();
+
+  const { data: product } = await supabase
+    .from('products')
+    .select('image_url')
+    .eq('id', id)
+    .single();
+
+    if (product?.image_url) {
+      try {
+        const path = product.image_url.split('product-images/')[1];
+
+        if (path) {
+          await supabase.storage
+            .from('product-images')
+            .remove([path]);
+        }
+      } catch (storageError) {
+        console.error('Failed to delete image from storage:', storageError);
+      }
+    }
   
   const { error } = await supabase
     .from('products')
@@ -78,5 +98,6 @@ export async function deleteProduct(id: string) {
   if (error) return { error: error.message };
 
   revalidatePath('/[locale]/products', 'layout');
+  revalidatePath('/[locale]/admin/products', 'page');
   return { success: true };
 }
