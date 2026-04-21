@@ -20,7 +20,7 @@ export default async function AllProductsPage({
 
   let query = supabase
     .from('products')
-    .select('*')
+    .select('*, categories(name_he,name_th)')
     .eq('is_active', true);
 
   if (q) {
@@ -28,7 +28,15 @@ export default async function AllProductsPage({
     query = query.ilike(searchColumn, `%${q}%`);
   }
 
-  const { data: products } = await query.order('created_at', { ascending: false });
+  const { data: rawProducts } = await query.order('created_at', { ascending: false });
+
+  const products = rawProducts?.map((p) => ({
+    ...p,
+    // Map DB image URL to component imageURL
+    imageUrl: p.image_url,
+    categoryName: locale === 'he'? p.categories?.name_he : p.categories?.name_th,
+    name: locale === 'he'? p.name_he:p.name_th
+  }));
 
   return (
     <main className="max-w-7xl mx-auto px-6 py-10">
