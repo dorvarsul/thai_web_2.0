@@ -37,7 +37,7 @@ export default async function CategoryNav({ locale }: { locale: string }) {
     .order('slug') // Ordering by slug is more stable than the 'name' column
 
   return (
-    <nav className="w-full overflow-hidden border-b border-slate-100 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+    <nav className="w-full border-b border-slate-100 bg-white shadow-sm">
       <div className="container mx-auto flex items-center justify-center gap-12 overflow-x-auto px-4 py-6 no-scrollbar">
         <CategoryItem name={t('allProducts')} Icon={LayoutGrid} href={`/products`} />
 
@@ -59,12 +59,12 @@ function CategoryItem({ name, Icon, href }: { name: string; Icon: LucideIcon; hr
   return (
     <Link 
       href={href} 
-      className="group flex min-w-[88px] cursor-pointer flex-col items-center gap-3 transition-transform hover:-translate-y-1"
+      className="group flex flex-shrink-0 w-20 md:w-24 cursor-pointer flex-col items-center gap-3 transition-transform hover:-translate-y-1 snap-center"
     >
       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-600 shadow-md transition-colors group-hover:bg-red-700">
         <Icon size={26} className="text-white" />
       </div>
-      <span className="whitespace-nowrap text-sm font-bold text-slate-700 transition-colors group-hover:text-red-600">
+      <span className="text-center text-xs md:text-sm font-bold text-slate-700 transition-colors group-hover:text-red-600 leading-relaxed min-h-[2.5rem] flex items-start justify-center">
         {name}
       </span>
     </Link>
