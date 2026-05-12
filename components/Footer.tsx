@@ -6,7 +6,7 @@ export default async function Footer() {
 
   // Replace with your actual data
   const phone = "050-232-2229";
-  const address = "ישראל פולק 10, קריית גת";
+  const address = "ישראל פולק 3";
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
   const wazeUrl = `https://waze.com/ul?q=${encodeURIComponent(address)}&navigate=yes`;
 

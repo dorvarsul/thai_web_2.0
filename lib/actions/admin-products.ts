@@ -67,6 +67,63 @@ export async function upsertProduct(data: unknown) {
   return { success: true };
 }
 
+export async function upsertProductsBulk(items: unknown[]) {
+  const supabase = await createClient();
+
+  // 1. Authenticate & Role Check
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return { error: 'No products provided' };
+  }
+
+  const processed: any[] = [];
+
+  for (const it of items) {
+    const result = productSchema.safeParse(it);
+    if (!result.success) {
+      return { error: result.error.format() };
+    }
+
+    const translatedNameTh =
+      optionalString(result.data.name_th) ??
+      (await translateText(result.data.name_he, 'th', 'he')) ??
+      result.data.name_he;
+
+    const translatedDescriptionTh =
+      optionalString(result.data.description_th) ??
+      (result.data.description_he
+        ? (await translateText(result.data.description_he, 'th', 'he')) ?? result.data.description_he
+        : undefined);
+
+    const productData = {
+      ...result.data,
+      name: result.data.name_he.trim(),
+      name_he: result.data.name_he.trim(),
+      name_th: translatedNameTh,
+      description_he: optionalString(result.data.description_he),
+      description_th: translatedDescriptionTh,
+      image_url: optionalString(result.data.image_url),
+    };
+
+    processed.push(productData);
+  }
+
+  const { error } = await supabase
+    .from('products')
+    .upsert(processed);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath('/[locale]/products', 'layout');
+  revalidatePath('/[locale]/admin/products', 'page');
+
+  return { success: true, count: processed.length };
+}
+
 export async function deleteProduct(id: string) {
   const supabase = await createClient();
 

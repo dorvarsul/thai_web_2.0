@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { upsertProduct } from '@/lib/actions/admin-products';
+import { upsertProduct, upsertProductsBulk } from '@/lib/actions/admin-products';
 import { ProductInput } from '@/lib/product-validation';
 import { createClient } from '@/lib/supabase-client'; // Ensure this points to your BROWSER client helper
 
@@ -20,6 +20,8 @@ export default function ProductForm({ initialData, categories, locale }: Props) 
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [batch, setBatch] = useState<Partial<ProductInput>[]>([]);
+  const formRef = useRef<HTMLFormElement | null>(null);
   
   // Track the image URL in state
   const [imageUrl, setImageUrl] = useState(initialData?.image_url || '');
@@ -82,8 +84,50 @@ export default function ProductForm({ initialData, categories, locale }: Props) 
     }
   }
 
+  function collectRawDataFromForm(): Record<string, string> {
+    if (!formRef.current) return {};
+    const fd = new FormData(formRef.current);
+    const raw = Object.fromEntries(Array.from(fd.entries()).map(([k, v]) => [k, typeof v === 'string' ? v : '']));
+    raw.image_url = imageUrl;
+    return raw as Record<string, string>;
+  }
+
+  function handleAddToBatch() {
+    setError(null);
+    try {
+      const raw = collectRawDataFromForm();
+      // push minimal typed data
+      setBatch(prev => [...prev, raw as Partial<ProductInput>]);
+      // reset form for next product
+      formRef.current?.reset();
+      setImageUrl('');
+    } catch (err: any) {
+      setError(err?.message || 'Failed to add product to batch');
+    }
+  }
+
+  async function handleUploadBatch() {
+    if (batch.length === 0) return;
+    setLoading(true);
+    setError(null);
+
+    const result = await upsertProductsBulk(batch as unknown[]);
+
+    if (result?.error) {
+      setError(typeof result.error === 'string' ? result.error : 'Bulk upload failed');
+      setLoading(false);
+    } else {
+      router.push(`/${safeLocale}/admin/products`);
+      router.refresh();
+    }
+  }
+
+  function removeFromBatch(index: number) {
+    setBatch(prev => prev.filter((_, i) => i !== index));
+  }
+
   return (
-    <form action={handleSubmit} className="space-y-8 bg-white p-8 rounded-xl shadow-sm border border-gray-100 max-w-5xl">
+    <form ref={formRef} action={handleSubmit} className="space-y-8 bg-white p-8 rounded-xl shadow-sm border border-gray-100 max-w-5xl">
       {error && (
         <div className="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm">
           {error}
@@ -174,15 +218,55 @@ export default function ProductForm({ initialData, categories, locale }: Props) 
         </div>
       </div>
 
-      <div className="flex justify-end gap-4 border-t pt-6">
-        <button type="button" onClick={() => router.back()} className="px-6 py-2.5 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition">Cancel</button>
-        <button 
-          type="submit" 
-          disabled={loading || uploading}
-          className="bg-slate-900 text-white px-10 py-2.5 rounded-lg font-bold hover:bg-black disabled:opacity-50 shadow-lg shadow-gray-200 transition-all active:scale-95"
-        >
-          {loading ? 'Processing...' : (initialData?.id ? 'Update Product' : 'Create Product')}
-        </button>
+      {/* Batch Queue Panel */}
+      <div className="mt-4">
+        <label className="inline-flex items-center gap-3">
+          <input
+            type="checkbox"
+            name="is_featured"
+            value="true"
+            defaultChecked={!!initialData?.is_featured}
+            className="w-4 h-4 rounded border-gray-300 text-blue-600"
+          />
+          <span className="text-sm text-gray-700">Show on main page</span>
+        </label>
+      </div>
+
+      {batch.length > 0 && (
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <h4 className="font-semibold mb-2">Queued Products ({batch.length})</h4>
+          <ul className="space-y-2">
+            {batch.map((b, i) => (
+              <li key={i} className="flex justify-between items-center bg-white p-3 rounded border">
+                <div>
+                  <div className="font-medium text-sm">{b.name_he || b.name_th || 'Untitled'}</div>
+                  <div className="text-xs text-gray-500">₪{b.price || '—'}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button type="button" onClick={() => removeFromBatch(i)} className="text-red-600 hover:underline text-sm">Remove</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="flex justify-between gap-4 border-t pt-6">
+        <div className="flex items-center gap-3">
+          <button type="button" onClick={handleAddToBatch} disabled={uploading} className="px-4 py-2 text-sm bg-yellow-50 border border-yellow-200 rounded hover:bg-yellow-100">Add to Batch</button>
+          <button type="button" onClick={handleUploadBatch} disabled={batch.length === 0 || loading} className="px-4 py-2 text-sm bg-green-600 text-white rounded hover:bg-green-700">Upload Batch ({batch.length})</button>
+        </div>
+
+        <div>
+          <button type="button" onClick={() => router.back()} className="px-6 py-2.5 text-gray-600 font-medium hover:bg-gray-100 rounded-lg transition">Cancel</button>
+          <button 
+            type="submit" 
+            disabled={loading || uploading}
+            className="bg-slate-900 text-white px-10 py-2.5 rounded-lg font-bold hover:bg-black disabled:opacity-50 shadow-lg shadow-gray-200 transition-all active:scale-95"
+          >
+            {loading ? 'Processing...' : (initialData?.id ? 'Update Product' : 'Create Product')}
+          </button>
+        </div>
       </div>
     </form>
   );

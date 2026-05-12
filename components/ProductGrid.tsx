@@ -30,6 +30,7 @@ export default async function ProductGrid({ locale }: { locale: string }) {
     .from('products')
     .select('*, categories(*)') 
     .eq('is_active', true)
+    .eq('is_featured', true)
 
   return (
     <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">

@@ -11,6 +11,7 @@ export const productSchema = z.object({
   description_he: z.string().optional(),
   description_th: z.string().optional(),
   image_url: z.string().url().optional().or(z.literal('')),
+  is_featured: z.coerce.boolean().optional(),
 });
 
 export type ProductInput = z.infer<typeof productSchema>;
